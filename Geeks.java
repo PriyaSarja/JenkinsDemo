@@ -5,6 +5,6 @@ import java.util.*;
 public class Geeks {
 
     public static void main(String[] args) {
-        System.out.println("Treat Life Like an Anime");
+        System.out.println("Treate Life Like an Anime");
     }
 }
