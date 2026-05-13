@@ -1,0 +1,204 @@
+DOCKER
+
+Docker - Containerization tool that became open source in 2013
+Combination of Application and Configuration
+Docker Containers:
+Isolation: Containers isolate the application and its dependencies from the underlying system. This allows you to run applications with consistent behavior, regardless of the environment they are deployed in (e.g., development, testing, or production).
+Lightweight: Unlike virtual machines (VMs), containers share the host operating system's kernel, making them more efficient and faster to start up than VMs.
+Portability: You can create a container image (a snapshot of the application and its environment) that can be run on any machine with Docker installed, regardless of the underlying OS or hardware.
+Dockerfile: A text file that contains instructions to build a Docker image. It specifies what software and dependencies the container needs and how to set up the environment.
+Image vs. Container:
+Docker Image: A read-only template that includes the operating system, software, and application configurations.
+Docker Container: A running instance of a Docker image. Containers can be started, stopped, moved, and deleted.
+Virtualization allows you to create virtual versions of physical resources like servers, storage, or operating systems. It enables multiple virtual machines (VMs) to run on a single physical server, each with its own OS and applications.
+Key Concepts:
+Hypervisor: Software that manages VMs. It sits between the physical hardware and the virtual machines. There are two types:
+Type 1 (Bare-metal): Runs directly on physical hardware (e.g., VMware ESXi).
+Type 2 (Hosted): Runs on top of an existing operating system (e.g., VirtualBox).
+Virtual Machine (VM): A fully isolated environment that acts like a real computer. Each VM runs its own OS and software but shares physical resources like CPU, memory, and storage.
+
+Installing Docker
+
+Windows 10/11 64-bit at least 4GB of RAM
+Updated version of Windows Subsystem for Linux 2, Hypervisor/Hyper-V enabled
+Enable it via "Turn Windows features on or off", restart your PC, and use Hyper-V Manager to create, manage, and run virtual OS instances (e.g., Windows/Linux) by assigning virtual resources like RAM, disk, and network
+Install Docker from any browser desktop for windows-x86-AMD
+
+Docker Client - VS Code - allows you to perform various operations on the command line
+Docker Daemon - Docker Desktop - Docker’s Engine - locally running engine
+Docker Registry - Docker Hub - Public registry
+Docker Image - application and docker file - Static, configurations of tools, information about the base image and language and current working directory, env variables, commands and libraries. All information about the application : how to run, what is there.
+Building, tagging and checking it in docker desktop.
+Collection of Running Images → Docker Container → Dynamic form of Image
+Olumne is a storage space for your container, just like secondary storage
+Container duplicate and backup
+
+CODING
+Start Docker desktop
+Go to VS Code (Docker Client) and create two files 
+
+Fibonacci.java
+public class Fibonacci {                
+    public static void main(String[] args) {                
+        int n = 10, t1 = 0, t2 = 1;                
+        System.out.print("First " + n + " terms: ");                
+        for (int i = 1; i <= n; ++i) {                
+            System.out.print(t1 + " + ");                
+            int sum = t1 + t2;                
+            t1 = t2;                
+            t2 = sum;                
+        }                
+    }                
+}
+
+Dockerfile
+FROM eclipse-temurin:25-jdk
+WORKDIR /app
+COPY . /app
+RUN javac Fibonacci.java
+CMD ["java","Fibonacci"]
+
+In Terminal and repository name must be lowercase
+docker build -t fib .
+docker images 
+docker run fib    
+docker--rm fib .
+See output in terminal 
+First 10 terms: 0 + 1 + 1 + 2 + 3 + 5 + 8 + 13 + 21 + 34 + 
+
+https://hub.docker.com/ - Sign Up - priyasarja9@gmail.com
+Under Hub -> Explore and My Hub
+
+Docker Image is created
+docker build -t image-name:v1 #- t is tag
+docker images
+DOCKER COMMANDS
+FROM: Defines base images
+WORK DIR: Current working directory
+COPY and ADD: like Crul, we use Add to extract apps from urls and the zip files
+RUN and CMD: Compile and run/execute the file
+Env: Setting up paths
+
+docker login → Docker hub user name and password
+docker tag <image ID> <dockerhub login>/demobook:v1
+ afc2640030f0  and 
+
+docker tag fib:latest priyasarja/demobook:v1
+docker images 
+Take your name
+
+Login 
+docker login #with a URL
+
+Push
+docker push priyasarja/demobook:v1 
+ 
+Check your dockerhub, the new image will be displayed and run it
+Push Image to Docker hub -> folder with application and docker file
+
+Pull
+docker pull 
+docker run -d --name mysql-container -e MYSQL_ROOT_PASSWORD=root123 -p 8081:8081 mysql
+Digest: sha256:c5df04bee1a42b74a5841c6409e669cf62126cd0416f00c1cea8ab933b9361b9
+Status: Downloaded newer image for mysql:latest
+
+Now execute container 
+docker exec -it mysql-container mysql -u root -p
+You should see mysql>
+CREATE DATABASE school_db;
+USE school_db;
+CREATE TABLE students (
+student_id INT AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR(100),
+email VARCHAR(100),
+phone VARCHAR(15)
+);
+Stop and remove
+docker stop mysql-container
+Docker rm mysql-container
+Local testing in docker desktop and we can run it in docker desktop also 
+LAB
+
+Push Image using Jenkins Piple line
+In git hub 
+Dockerfile
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY . /app
+RUN javac HelloWorld.java
+CMD ["java","HelloWorld"]
+
+HelloWorld.java
+public class HelloWorld {                
+    public static void main(String[] args) {                                
+        System.out.print("Hello World!");                
+                      
+    }                
+}
+
+Create Jenkins file
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = 'Docker-credentials'
+        IMAGE_NAME = 'shilpakevala/new_docker_image'
+    }
+
+    stages {
+
+        stage('Build Java Application') {
+            steps {
+                bat 'javac HelloWorld.java'
+            }
+        }
+
+        stage('Run Java Program') {
+            steps {
+                bat 'java HelloWorld'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                bat 'docker build -t %IMAGE_NAME%:latest .'
+            }
+        }
+
+        stage('Login to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(
+                credentialsId: 'Docker-credentials',
+                usernameVariable: 'USER',
+                passwordVariable: 'PASS')]) {
+
+                    bat 'echo %PASS%| docker login -u %USER% --password-stdin'
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                bat 'docker push %IMAGE_NAME%:latest'
+            }
+        }
+    }
+}
+
+
+Go to jenkins → settings → manage credentials → add credentials → add your docker user name and password → create
+Check for updates and also remember to login using localhost with password in .err file
+Keep Docker Desktop on
+
+Jenkins → New Item → Pipeline Project → OK
+Pipeline:
+Select pipeline script from SCM
+SCM → Select Git → repo link → credentials 
+Branch → main
+
+Apply and Save
+Build Now
+
+Green Tick and Image in Docker Desktop
+
+DockerHub Password: Priya@doc123
