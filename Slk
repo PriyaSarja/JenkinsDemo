@@ -1,0 +1,37 @@
+SLACK
+app.slack.com → Sign-in
+https://app.slack.com/client/T0ANT18EXV2/C0ANT18Q0P6
+Join C Section→ Create New Channel: c_section_demo_new_157
+More (...) → Tools → Apps → Search Jenkins → Open App → Configure → Add to Slack → Select the channel you have created and integrate 
+Locate Step 3 and copy token: oJJkwuGE6KX5EdeYPLOjvnB7 
+
+Login to Jenkins
+Check for slack plugins
+Available Plugins → Global Slack Notifier & Slack Notification
+Install them
+
+Settings → Manage Jenkins → System → Slack
+csection-workspace
+
+Credentials
+Add Global → Add Secret text
+Scope: Global → Secret Text: oJJkwuGE6KX5EdeYPLOjvnB7  → ID: anything → Create
+Next
+Click on drop down → Click on +
+Test Connection → must show Success 
+Apply and Save 
+
+Create New Item
+Freestyle project → Ok
+Build Steps:
+Add Build Steps → Execute Windows batch  command → java - -version
+
+Post Build Actions: 
+Add post build action → Slack Notifications
+Select:
+Notify Build Start
+Notify Success
+Notify Aborted
+
+Apply and Save
+Build Now
